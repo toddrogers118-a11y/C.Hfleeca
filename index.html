@@ -1,317 +1,279 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Fleeca — Invoice / Overdue</title>
-<style>
-  :root{
-    --bg:#0b0d0f; --paper:#101316; --ink:#ffffff; --muted:#cfd6dc;
-    --line:rgba(255,255,255,.14);
-    --fleeca:#2fd19b; --fleeca-dark:#1fae79; --fleeca-ink:#071a13;
-    --warn:#ff6b6b; --warn-soft:rgba(255,107,107,.18);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; background:linear-gradient(180deg,#0b0d0f 0%, #0e1215 100%);
-    color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
-    padding:24px; display:grid; place-items:center;
-  }
-  .sheet{width:100%; max-width:880px}
-  .invoice{
-    position:relative; background:var(--paper);
-    border:1px solid var(--line); border-radius:12px; overflow:hidden;
-    box-shadow:0 8px 22px rgba(0,0,0,.55);
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fleeca bank — Account portal</title>
+  <style>
+    :root{
+      --bg:#0b0d0f; --panel:#101416; --ink:#e8f1ed; --muted:#a5b6ae; --line:rgba(255,255,255,.08);
+      --green:#2fd19b; --green-2:#1fae79;
+      /* NOTICE COLOR — EDIT THIS HEX TO CHANGE THE LINE COLOR GLOBALLY */
+      --notice:#c1a2d8; /* ← change to your Photoshop hex, e.g. #00FF99 */
+      --header-h:74px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,var(--bg) 0%, #0e1215 100%);
+      color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Inter, Roboto, Arial, sans-serif;
+      display:grid; place-items:center; padding:24px; overflow:hidden;
+    }
+    .card{
+      width:min(1000px, 100%); height:min(90vh, 760px); background:var(--panel); border:1px solid var(--line); border-radius:20px;
+      box-shadow:0 10px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.03);
+      overflow:hidden; display:flex; flex-direction:column;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    /* Light theme (Login only) */
+    .card.light{ background:#ffffff; color:#0b0d0f; border-color:#e6ece9; }
+    .card.light .header{ background:linear-gradient(180deg, rgba(47,209,155,.06) 0%, rgba(47,209,155,0) 100%); border-bottom-color:#eef2f0; }
+    .card.light .sub,.card.light .hint{ color:#5c6d66; }
+    .card.light label{ color:#3c4a45; }
+    .card.light input{ background:#ffffff; color:#0b0d0f; border:1px solid #d5dfda; }
+    .card.light input:focus{ border-color:#2fd19b; box-shadow:0 0 0 3px rgba(47,209,155,.2); }
+    .card.light .btn-ghost{ color:#0b0d0f; border-color:#d5dfda; }
 
-  /* Header */
-  .hdr{
-    display:flex; justify-content:space-between; gap:16px; padding:22px 24px;
-    background:linear-gradient(180deg,#ffffff 0%, #f5fffb 100%); color:#000;
-    border-bottom:1px solid rgba(0,0,0,.08);
-  }
-  .brand{display:flex; gap:12px; align-items:center}
-  .mark{
-    width:44px; height:44px; border-radius:10px; display:grid; place-items:center;
-    background:var(--fleeca); color:var(--fleeca-ink); font-weight:900; font-size:18px;
-    border:1px solid rgba(0,0,0,.07);
-  }
-  .brand h1{margin:0; font-size:20px; letter-spacing:.3px; color:#0b1a14}
-  .brand small{color:#2b3a34}
+    .header{ height:var(--header-h); padding:18px 24px; display:flex; align-items:center; gap:14px; border-bottom:1px solid var(--line); background:linear-gradient(180deg, rgba(47,209,155,.08) 0%, rgba(47,209,155,0) 100%); }
+    .fleeca-mark{ width:40px; height:40px; border-radius:12px; background:conic-gradient(from 180deg, var(--green), var(--green-2)); display:grid; place-items:center; font-weight:900; color:#07271b; font-size:20px; letter-spacing:.5px; box-shadow:0 6px 18px rgba(47,209,155,.35); }
+    h1{ font-size:18px; margin:0; letter-spacing:.3px; }
 
-  .meta{min-width:260px; font-size:13px}
-  .meta table{width:100%; border-collapse:collapse}
-  .meta td{
-    padding:4px 0 4px 12px; border-bottom:1px dashed rgba(0,0,0,.14); vertical-align:top;
-  }
-  .meta td:first-child{padding-left:0; color:#42504a; font-weight:600; width:44%}
-  .badge{
-    display:inline-block; margin-top:8px; padding:6px 8px; border-radius:999px;
-    background:var(--warn-soft); color:var(--warn); font-weight:800; font-size:12px; letter-spacing:.35px; text-transform:uppercase;
-  }
+    .body{ padding:20px 24px; flex:1; overflow:hidden; }
+    .field{ display:grid; gap:6px; margin:10px 0; }
+    label{ font-size:12px; color:var(--muted); }
+    input{ width:100%; padding:12px 12px; border-radius:10px; background:#0d1113; color:var(--ink); border:1px solid var(--line); outline:none; transition:border .2s, box-shadow .2s; }
+    input:focus{ border-color: var(--green); box-shadow: 0 0 0 3px rgba(47,209,155,.2); }
+    .btn{ cursor:pointer; user-select:none; border:none; border-radius:12px; padding:12px 14px; font-weight:700; letter-spacing:.2px; white-space:nowrap; }
+    .btn-primary{ background:linear-gradient(180deg, var(--green), var(--green-2)); color:#061d14; }
+    .btn-ghost{ background:transparent; color:#e8f1ed; border:1px solid var(--line); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .hint{ color:var(--muted); font-size:12px; margin-top:6px; }
+    .divider{ height:1px; background:var(--line); margin:8px 0 12px; }
+    .copy-badge{ font-size:12px; color:#061d14; background:var(--green); padding:6px 10px; border-radius:999px; display:inline-block; }
 
-  .part{display:flex; gap:24px; padding:18px 24px; border-bottom:1px solid(var(--line))}
-  .col{flex:1}
-  .lbl{color:var(--muted); font-size:12px; letter-spacing:.3px; text-transform:uppercase; margin-bottom:6px}
-  .box{background:#0c0f12; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:12px 14px}
-  .val{font-size:14px; line-height:1.45}
-  .due{font-size:24px; font-weight:900; color:var(--fleeca)}
+    /* Light theme monospace block */
+    .card.light .cmd{ background:#f7faf9; border-color:#e6ece9; color:#132018; }
 
-  .lines{padding:6px 24px 0}
-  table.items{width:100%; border-collapse:collapse; overflow:hidden; border:1px solid rgba(255,255,255,.12); border-radius:10px}
-  .items th,.items td{padding:12px 14px; font-size:14px; text-align:left}
-  .items thead th{
-    background:#0c0f12; color:var(--fleeca); letter-spacing:.2px; border-bottom:1px solid rgba(255,255,255,.09);
-  }
-  .items tbody tr:nth-child(odd){background:rgba(255,255,255,.02)}
-  .items tfoot td{border-top:1px solid rgba(255,255,255,.16); font-weight:800}
-  .right{text-align:right}
+    [data-view]{ display:none; height:100%; }
+    [data-view].active{ display:block; }
 
-  .note{padding:12px 24px 0; display:flex; gap:24px; flex-wrap:wrap}
-  .note .cardlet{flex:1 1 320px; background:#0c0f12; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:12px 14px}
-  .note .cardlet p{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55}
+    /* Center the LOGIN view content vertically and horizontally */
+    #view-login.active{ display:flex; align-items:center; justify-content:center; }
+    .login-wrap{ width:min(480px, 100%); }
+    /* Logo image above login (hidden until URL is set in JS) */
+    .logo-img{ display:none; max-width:200px; height:auto; margin:0 auto 12px; }
 
-  .act{display:flex; justify-content:flex-end; gap:10px; padding:16px 24px 22px; border-top:1px solid var(--line)}
-  .btn{
-    appearance:none; border:1px solid rgba(255,255,255,.2); background:#0d1214; color:var(--ink);
-    padding:10px 14px; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer;
-    transition:transform .04s ease, box-shadow .2s ease, border-color .2s ease;
-  }
-  .btn:hover{border-color:var(--fleeca); box-shadow:0 0 0 3px rgba(47,209,155,.15)}
-  .btn:active{transform:translateY(1px)}
-  .btn.primary{border-color:transparent; background:linear-gradient(180deg,var(--fleeca),var(--fleeca-dark)); color:#04130e}
 
-  /* Manual payment panel */
-  .mpanel-wrap{padding:0 24px 18px; display:none}
-  .panel{background:#0c0f12; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:14px;}
-  .panel h3{margin:0 0 8px; font-size:15px; color:var(--fleeca)}
-  .steps{display:grid; gap:10px}
-  .step{background:#0a0d10; border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:10px}
-  .step .num{
-    display:inline-grid; place-items:center; width:22px; height:22px; border-radius:999px;
-    background:var(--fleeca); color:#03100a; font-weight:900; margin-right:8px;
-  }
-  .kvs{margin-top:6px; font-size:13px; color:var(--muted)}
-  code.inline{background:#091013; padding:2px 6px; border-radius:5px; border:1px solid rgba(255,255,255,.12); color:#cffff0}
-  .small{font-size:12px; color:var(--muted)}
+    /* Stack login buttons vertically */
+    #view-login .row{ flex-direction:column; align-items:stretch; gap:10px; }
+    #view-login .btn{ width:100%; }
 
-  /* Toast */
-  .toast{
-    position:fixed; top:16px; right:16px; z-index:9999;
-    background:#ffffff; color:#0a1712; border:1px solid rgba(0,0,0,.1);
-    padding:10px 12px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.2);
-    display:none; font-weight:700; font-size:13px;
-  }
-  .toast::before{content:"✔"; margin-right:8px; color:var(--fleeca);}
-</style>
+
+    .gotcha-wrap{ display:grid; grid-template-rows:auto 1fr; height:100%; }
+    .gotcha-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; height:100%; align-items:start; }
+    .block{ display:grid; align-content:start; gap:10px; }
+
+    .notice-title{ color:var(--notice); }
+    .note-ic{ color:#3c4a45; font-size:12px; margin:6px 0 10px; }
+
+    .modal{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.55); }
+    .modal.open{ display:grid; }
+    .modal-card{ width:min(720px, 92%); max-height:80vh; background:#0e1316; border:1px solid var(--line); border-radius:16px; padding:18px; display:grid; gap:12px; overflow:auto; }
+    .modal-head{ display:flex; justify-content:space-between; align-items:center; }
+    .x{ background:transparent; border:1px solid var(--line); color:#e8f1ed; border-radius:8px; padding:6px 10px; cursor:pointer; }
+
+    @media (max-width: 880px){ .gotcha-grid{ grid-template-columns:1fr; } }
+  </style>
 </head>
 <body>
-  <div class="sheet">
-    <div class="invoice">
-      <div class="hdr">
-        <div class="brand">
-          <div class="mark">F</div>
-          <div>
-            <h1>Fleeca Bank</h1>
-            <small>123 Integrity Way • Los Santos</small>
+  <section class="card light" id="app">
+    <div class="header">
+      <div class="fleeca-mark">F</div>
+      <div>
+        <h1>Fleeca bank - Account portal</h1>
+      </div>
+    </div>
+
+    <!-- LOGIN VIEW (light theme) -->
+    <div class="body" id="view-login" data-view="login">
+      <div class="login-wrap">
+        <!-- LOGO ABOVE LOGIN — change the URL in the JS constant LOGO_URL (near the bottom of this file) -->
+        <img id="logoPreview" class="logo-img" alt="Bank logo" />
+        <h2 style="margin:.25rem 0 8px;font-size:22px; color:#0b0d0f">Sign in to continue</h2>
+        <p class="sub" style="color:#5c6d66">Use your <strong>Username</strong>, <strong>Phone #</strong>, or <strong>Email</strong>.</p>
+
+        <form id="loginForm" novalidate autocomplete="off" style="margin-top:12px">
+          <div class="field">
+            <label for="id">Username / Phone Number / Email</label>
+            <input id="id" name="id" placeholder="e.g. JohnD, 4151234567, john@example.com" />
           </div>
-        </div>
-        <div class="meta">
-          <table>
-            <tr><td>Invoice #</td><td id="invNum">FL-000000</td></tr>
-            <tr><td>Date</td><td id="invDate">—</td></tr>
-            <tr><td>Reference</td><td>Reversal Payment — Overdue</td></tr>
-          </table>
-          <span class="badge">Overdue</span>
-        </div>
-      </div>
-
-      <div class="part">
-        <div class="col">
-          <div class="lbl">Bill To</div>
-          <div class="box">
-            <div class="val">
-              <strong id="billHandleStrong">Fleeca Support</strong><br/>
-              Handle: <span id="billHandle">FleecaSupport</span>
-            </div>
+          <div class="field">
+            <label for="pw">Password</label>
+            <input id="pw" name="pw" type="password" placeholder="••••••••" />
           </div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn btn-primary" type="submit">Log in</button>
+            <button class="btn btn-ghost" type="button" id="demoFill">((use demo creds if you're unsure/skeptical, it's all for rp))</button>
+          </div>
+          <div class="hint" style="color:#5c6d66">((This is for roleplay, submitting anything will always advance to the next screen, if your character falls for the scam))</div>
+        </form>
+      </div>
+    </div>
+
+    <!-- GOTCHA VIEW (dark theme) -->
+    <div class="body" id="view-gotcha" data-view="gotcha">
+      <div class="gotcha-wrap">
+        <div>
+          <h2 class="notice-title" style="margin:0 0 4px;font-size:20px"><em>The next page wouldn't load, it would just give you the cycling wheel of death, infinitely loading</em></h2>
+          <p class="note-ic">(( If your character fell for logging in and you want to be apart of the RP, send whatever you think is fair by editing the amount and either click to copy cashtap, or bank transfer. Transfer will give you multiple reasons how your info would be icly utilized to take $ from your character ))</p>
         </div>
-        <div class="col">
-          <div class="lbl">Amount Due</div>
-          <div class="box"><div class="due" id="amountDue">$5,000</div></div>
-        </div>
-      </div>
 
-      <div class="lines">
-        <table class="items">
-          <thead><tr><th>Description</th><th class="right">Amount</th></tr></thead>
-          <tbody>
-            <tr>
-              <td>Reversal of prior credit — Mors Mutual Insurance Claim</td>
-              <td class="right" id="lineAmount">$5,000</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr><td class="right">Subtotal</td><td class="right" id="subTotal">$5,000</td></tr>
-            <tr><td class="right">Tax</td><td class="right">$0</td></tr>
-            <tr><td class="right">Total Due</td><td class="right" id="totalDue">$5,000</td></tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <div class="note">
-        <div class="cardlet">
-          <div class="lbl">Notes</div>
-          <p>Please resolve within 24 in-game hours.</p>
-        </div>
-      </div>
-
-      <div class="act">
-        <button class="btn primary" id="copyCmdBtn" type="button" aria-label="Copy CashTap Command">Quick Cashtap (Copy Command)</button>
-        <button class="btn" id="manualBtn" type="button" aria-expanded="false" aria-controls="mpanel">Manual Payment</button>
-      </div>
-
-      <div class="mpanel-wrap" id="mpanel" aria-hidden="true">
-        <div class="panel">
-          <h3>📋 Manual Payment Instructions</h3>
-          <div class="steps">
-            <div class="step">
-              <span class="num">1</span><strong>Open the CashTap Application</strong>
-              <div class="small">Launch your in-game CashTap mobile app.</div>
+        <div class="gotcha-grid">
+          <!-- Left column: Cashtap + shared amount -->
+          <div class="block">
+            <div class="field">
+              <label>Cash tap handle</label>
+              <input value="Fleeca" readonly />
             </div>
-            <div class="step">
-              <span class="num">2</span><strong>Navigate to Send Money</strong>
-              <div class="kvs">
-                Amount: <code class="inline" id="manualAmount">$5,000</code> &nbsp;|&nbsp;
-                Username: <code class="inline" id="manualUser">FleecaSupport</code> &nbsp;|&nbsp;
-                Comment: <code class="inline" id="commentCode">FL-000000</code>
+            <div class="field">
+              <label>Amount (applies to both)</label>
+              <input id="rpAmount" type="number" min="1" step="1" value="5000" />
+            </div>
+
+            <div>
+              <h3 style="margin:6px 0 6px">1) Quick Cashtap</h3>
+              <pre class="cmd" id="cashtapPreview">/cashtap Fleeca 5000 C.H. Cash Tap siphon</pre>
+              <div class="row">
+                <button class="btn btn-primary" id="copyCashtap">Copy Cashtap</button>
+                <span class="copy-badge" id="cashtapBadge" style="display:none">Copied!</span>
               </div>
             </div>
-            <div class="step">
-              <span class="num">3</span><strong>Confirm &amp; Send</strong>
-              <div class="small">Processing completes within 2–5 minutes of confirmation.</div>
+          </div>
+
+          <!-- Right column: /transfer + Manual button -->
+          <div class="block">
+            <div class="field">
+              <label>Bank account</label>
+              <input value="010126129" readonly />
+            </div>
+
+            <div>
+              <h3 style="margin:6px 0 6px">2) /transfer (Bank)</h3>
+              <pre class="cmd" id="transferPreview">/transfer 5000 010126129 [reason]</pre>
+              <div class="row">
+                <button class="btn btn-primary" id="copyTransfer">Copy /transfer</button>
+                <span class="copy-badge" id="transferBadge" style="display:none">Copied!</span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="row">
+              <button class="btn btn-ghost" id="openManual">3) Manual payment — how to do both</button>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- Manual Payment Modal -->
+  <div class="modal" id="manualModal" aria-hidden="true" role="dialog">
+    <div class="modal-card">
+      <div class="modal-head">
+        <strong>Manual payment — steps</strong>
+        <button class="x" id="closeManual">Close</button>
+      </div>
+      <div style="display:grid; gap:10px">
+        <div>
+          <div style="color:var(--green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1.1px;">Cashtap</div>
+          <p class="hint">Open chat, paste <code id="manualCashtapCmd">/cashtap Fleeca 5000 C.H. Cash Tap siphon</code>.</p>
+        </div>
+        <div>
+          <div style="color:var(--green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1.1px;">Bank /transfer</div>
+          <p class="hint">Open banking UI or chat, paste <code id="manualTransferCmd">/transfer 5000 010126129 RP scheme repayment</code>.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast">(command copied — paste in game)</div>
-
-<script>
-  /********************* EDIT HERE (one spot) *********************
-   * Change the handle and amount below. That’s it.
-   ***************************************************************/
-  const CONFIG = {
-    handle: 'FleecaSupport',   // no @
-    amount: 5000               // whole dollars
-  };
-  /***************************************************************/
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Persisting invoice number across refreshes
-    const KEY_INV = 'fleeca_inv_number_v1';
-    const genInvoice = () => `FL-${Math.floor(100000 + Math.random()*900000)}`;
-    let INVOICE = localStorage.getItem(KEY_INV);
-    if (!INVOICE || !/^FL-\d{6}$/.test(INVOICE)) {
-      INVOICE = genInvoice();
-      localStorage.setItem(KEY_INV, INVOICE);
+  <script>
+    // View toggle + theme toggle for card
+    const appCard = document.getElementById('app');
+    const VIEWS = { login: document.getElementById('view-login'), gotcha: document.getElementById('view-gotcha') };
+    function show(name){
+      for(const el of Object.values(VIEWS)) el.classList.remove('active');
+      VIEWS[name].classList.add('active');
+      
+      window.scrollTo({top:0, behavior:'smooth'});
     }
+    show('login'); // start on login (light)
 
-    // UK date with weekday (Europe/London)
-    const ukDateString = () =>
-      new Date().toLocaleString('en-GB', {
-        timeZone: 'Europe/London',
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      });
-
-    const fmtUSD = n => `$${Number(n).toLocaleString('en-US', {maximumFractionDigits:0})}`;
-
-    // DOM refs
-    const invNum = document.getElementById('invNum');
-    const invDate = document.getElementById('invDate');
-    const billHandleStrong = document.getElementById('billHandleStrong');
-    const billHandle = document.getElementById('billHandle');
-    const amountDue = document.getElementById('amountDue');
-    const lineAmount = document.getElementById('lineAmount');
-    const subTotal = document.getElementById('subTotal');
-    const totalDue = document.getElementById('totalDue');
-    const manualAmount = document.getElementById('manualAmount');
-    const manualUser = document.getElementById('manualUser');
-    const commentCode = document.getElementById('commentCode');
-
-    const copyBtn = document.getElementById('copyCmdBtn');
-    const toast = document.getElementById('toast');
-    const manualBtn = document.getElementById('manualBtn');
-    const mpanel = document.getElementById('mpanel');
-
-    // Set header date + invoice
-    invNum.textContent = INVOICE;
-    invDate.textContent = ukDateString();
-
-    // Apply CONFIG everywhere
-    const handle = (CONFIG.handle || 'FleecaSupport').trim() || 'FleecaSupport';
-    const amount = Math.max(0, Math.round(Number(CONFIG.amount || 0)));
-    const money = fmtUSD(amount);
-
-    billHandleStrong.textContent = handle;
-    billHandle.textContent = handle;
-    amountDue.textContent = money;
-    lineAmount.textContent = money;
-    subTotal.textContent = money;
-    totalDue.textContent = money;
-    manualAmount.textContent = money;
-    manualUser.textContent = handle;
-    commentCode.textContent = INVOICE;
-
-    // Build command
-    const currentCmd = `/cashtap ${handle} ${amount}`;
-
-    // Robust copy function (works on file:// too)
-    async function copyText(txt){
-      try{
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(txt);
-        } else {
-          const ta = document.createElement('textarea');
-          ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
-          document.body.appendChild(ta); ta.focus(); ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-        }
-        showToast();
-      }catch(e){
-        // Last-resort: prompt (user can Ctrl/Cmd+C)
-        window.prompt('Copy command and paste in game:', txt);
-      }
-    }
-
-    function showToast(){
-      toast.style.display = 'block';
-      setTimeout(()=>{ toast.style.display='none'; }, 2200);
-    }
-
-    // Wire up buttons
-    copyBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      copyText(currentCmd);
+    // Demo button
+    document.getElementById('demoFill').addEventListener('click', ()=>{
+      document.getElementById('id').value = 'john@fleeca.mail';
+      document.getElementById('pw').value = 'hunter2';
+      
     });
 
-    manualBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const showing = mpanel.style.display === 'block';
-      mpanel.style.display = showing ? 'none' : 'block';
-      manualBtn.setAttribute('aria-expanded', String(!showing));
-      mpanel.setAttribute('aria-hidden', String(showing));
-      manualBtn.textContent = showing ? 'Manual Payment' : 'Hide Manual Payment';
-    });
-  });
-</script>
+    // Submit always advances and randomizes reason
+    document.getElementById('loginForm').addEventListener('submit', (e)=>{ e.preventDefault(); randomizeReason(); show('gotcha'); });
+
+    // Elements
+    const rpAmountEl = document.getElementById('rpAmount');
+    const cashtapPreview = document.getElementById('cashtapPreview');
+    const transferPreview = document.getElementById('transferPreview');
+    const manualCashtapCmd = document.getElementById('manualCashtapCmd');
+    const manualTransferCmd = document.getElementById('manualTransferCmd');
+
+    // Logo (set in code)
+    // ===== LOGO: EDIT THIS URL TO CHANGE THE BANK LOGO (appears above login) =====
+    const LOGO_URL = "https://i.imgur.com/5Uayt40.png"; // e.g. "https://i.imgur.com/abc123.png"
+    const logoPreviewEl = document.getElementById('logoPreview');
+    if (LOGO_URL) { logoPreviewEl.src = LOGO_URL; logoPreviewEl.style.display = 'block'; }
+    logoPreviewEl.addEventListener('error', ()=>{ logoPreviewEl.style.display='none'; });
+
+    // Reasons
+    const reasons = [
+      'RP scheme repayment',
+      'Cash Tap money siphon',
+      'Transfer siphon',
+      'Card details used online at a hair store',
+      'Card details used online on SanEats'
+    ];
+    let reason = reasons[0];
+
+    function randomizeReason(){
+      reason = reasons[Math.floor(Math.random()*reasons.length)];
+      updatePreviews();
+    }
+
+    function updatePreviews(){
+      const amt = parseInt(rpAmountEl.value,10) || 1; // shared amount
+      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Cash Tap siphon`;
+      const transferCmd = `/transfer ${amt} 010126129 ${reason}`;
+      cashtapPreview.textContent = cashtapCmd;
+      transferPreview.textContent = transferCmd;
+      if (manualCashtapCmd) manualCashtapCmd.textContent = cashtapCmd;
+      if (manualTransferCmd) manualTransferCmd.textContent = transferCmd;
+    }
+
+    rpAmountEl.addEventListener('input', updatePreviews);
+    updatePreviews();
+
+    // Copy helpers
+    async function copyText(text){
+      try{ await navigator.clipboard.writeText(text); return true; }
+      catch(err){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); const ok=document.execCommand('copy'); document.body.removeChild(ta); return ok; }
+    }
+    function flash(el){ el.style.display='inline-block'; setTimeout(()=> el.style.display='none', 1300); }
+    document.getElementById('copyCashtap').addEventListener('click', async ()=>{ if(await copyText(cashtapPreview.textContent)) flash(document.getElementById('cashtapBadge')); });
+    document.getElementById('copyTransfer').addEventListener('click', async ()=>{ if(await copyText(transferPreview.textContent)) flash(document.getElementById('transferBadge')); });
+
+    // Modal controls
+    const manualModal=document.getElementById('manualModal');
+    document.getElementById('openManual').addEventListener('click',()=> { updatePreviews(); manualModal.classList.add('open'); });
+    document.getElementById('closeManual').addEventListener('click',()=> manualModal.classList.remove('open'));
+    manualModal.addEventListener('click',(e)=>{ if(e.target===manualModal) manualModal.classList.remove('open'); });
+  </script>
 </body>
 </html>
