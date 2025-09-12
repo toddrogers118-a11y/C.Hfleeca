@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Fleeca — Invoice / Overdue</title>
+<style>
+  :root{
+    --bg:#0b0d0f; --paper:#101316; --ink:#ffffff; --muted:#cfd6dc;
+    --line:rgba(255,255,255,.14);
+    --fleeca:#2fd19b; --fleeca-dark:#1fae79; --fleeca-ink:#071a13;
+    --warn:#ff6b6b; --warn-soft:rgba(255,107,107,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:linear-gradient(180deg,#0b0d0f 0%, #0e1215 100%);
+    color:var(--ink); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
+    padding:24px; display:grid; place-items:center;
+  }
+  .sheet{width:100%; max-width:880px}
+  .invoice{
+    position:relative; background:var(--paper);
+    border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 22px rgba(0,0,0,.55);
+  }
+
+  /* Header */
+  .hdr{
+    display:flex; justify-content:space-between; gap:16px; padding:22px 24px;
+    background:linear-gradient(180deg,#ffffff 0%, #f5fffb 100%); color:#000;
+    border-bottom:1px solid rgba(0,0,0,.08);
+  }
+  .brand{display:flex; gap:12px; align-items:center}
+  .mark{
+    width:44px; height:44px; border-radius:10px; display:grid; place-items:center;
+    background:var(--fleeca); color:var(--fleeca-ink); font-weight:900; font-size:18px;
+    border:1px solid rgba(0,0,0,.07);
+  }
+  .brand h1{margin:0; font-size:20px; letter-spacing:.3px; color:#0b1a14}
+  .brand small{color:#2b3a34}
+
+  .meta{min-width:260px; font-size:13px}
+  .meta table{width:100%; border-collapse:collapse}
+  .meta td{
+    padding:4px 0 4px 12px; border-bottom:1px dashed rgba(0,0,0,.14); vertical-align:top;
+  }
+  .meta td:first-child{padding-left:0; color:#42504a; font-weight:600; width:44%}
+  .badge{
+    display:inline-block; margin-top:8px; padding:6px 8px; border-radius:999px;
+    background:var(--warn-soft); color:var(--warn); font-weight:800; font-size:12px; letter-spacing:.35px; text-transform:uppercase;
+  }
+
+  .part{display:flex; gap:24px; padding:18px 24px; border-bottom:1px solid(var(--line))}
+  .col{flex:1}
+  .lbl{color:var(--muted); font-size:12px; letter-spacing:.3px; text-transform:uppercase; margin-bottom:6px}
+  .box{background:#0c0f12; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:12px 14px}
+  .val{font-size:14px; line-height:1.45}
+  .due{font-size:24px; font-weight:900; color:var(--fleeca)}
+
+  .lines{padding:6px 24px 0}
+  table.items{width:100%; border-collapse:collapse; overflow:hidden; border:1px solid rgba(255,255,255,.12); border-radius:10px}
+  .items th,.items td{padding:12px 14px; font-size:14px; text-align:left}
+  .items thead th{
+    background:#0c0f12; color:var(--fleeca); letter-spacing:.2px; border-bottom:1px solid rgba(255,255,255,.09);
+  }
+  .items tbody tr:nth-child(odd){background:rgba(255,255,255,.02)}
+  .items tfoot td{border-top:1px solid rgba(255,255,255,.16); font-weight:800}
+  .right{text-align:right}
+
+  .note{padding:12px 24px 0; display:flex; gap:24px; flex-wrap:wrap}
+  .note .cardlet{flex:1 1 320px; background:#0c0f12; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:12px 14px}
+  .note .cardlet p{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55}
+
+  .act{display:flex; justify-content:flex-end; gap:10px; padding:16px 24px 22px; border-top:1px solid var(--line)}
+  .btn{
+    appearance:none; border:1px solid rgba(255,255,255,.2); background:#0d1214; color:var(--ink);
+    padding:10px 14px; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer;
+    transition:transform .04s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .btn:hover{border-color:var(--fleeca); box-shadow:0 0 0 3px rgba(47,209,155,.15)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{border-color:transparent; background:linear-gradient(180deg,var(--fleeca),var(--fleeca-dark)); color:#04130e}
+
+  /* Manual payment panel */
+  .mpanel-wrap{padding:0 24px 18px; display:none}
+  .panel{background:#0c0f12; border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:14px;}
+  .panel h3{margin:0 0 8px; font-size:15px; color:var(--fleeca)}
+  .steps{display:grid; gap:10px}
+  .step{background:#0a0d10; border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:10px}
+  .step .num{
+    display:inline-grid; place-items:center; width:22px; height:22px; border-radius:999px;
+    background:var(--fleeca); color:#03100a; font-weight:900; margin-right:8px;
+  }
+  .kvs{margin-top:6px; font-size:13px; color:var(--muted)}
+  code.inline{background:#091013; padding:2px 6px; border-radius:5px; border:1px solid rgba(255,255,255,.12); color:#cffff0}
+  .small{font-size:12px; color:var(--muted)}
+
+  /* Toast */
+  .toast{
+    position:fixed; top:16px; right:16px; z-index:9999;
+    background:#ffffff; color:#0a1712; border:1px solid rgba(0,0,0,.1);
+    padding:10px 12px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.2);
+    display:none; font-weight:700; font-size:13px;
+  }
+  .toast::before{content:"✔"; margin-right:8px; color:var(--fleeca);}
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="invoice">
+      <div class="hdr">
+        <div class="brand">
+          <div class="mark">F</div>
+          <div>
+            <h1>Fleeca Bank</h1>
+            <small>123 Integrity Way • Los Santos</small>
+          </div>
+        </div>
+        <div class="meta">
+          <table>
+            <tr><td>Invoice #</td><td id="invNum">FL-000000</td></tr>
+            <tr><td>Date</td><td id="invDate">—</td></tr>
+            <tr><td>Reference</td><td>Reversal Payment — Overdue</td></tr>
+          </table>
+          <span class="badge">Overdue</span>
+        </div>
+      </div>
+
+      <div class="part">
+        <div class="col">
+          <div class="lbl">Bill To</div>
+          <div class="box">
+            <div class="val">
+              <strong id="billHandleStrong">FleecaSupport</strong><br/>
+              Handle: <span id="billHandle">FleecaSupport</span>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="lbl">Amount Due</div>
+          <div class="box"><div class="due" id="amountDue">$5,000</div></div>
+        </div>
+      </div>
+
+      <div class="lines">
+        <table class="items">
+          <thead><tr><th>Description</th><th class="right">Amount</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Reversal of prior credit — Mors Mutual Insurance Claim</td>
+              <td class="right" id="lineAmount">$5,000</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr><td class="right">Subtotal</td><td class="right" id="subTotal">$5,000</td></tr>
+            <tr><td class="right">Tax</td><td class="right">$0</td></tr>
+            <tr><td class="right">Total Due</td><td class="right" id="totalDue">$5,000</td></tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="note">
+        <div class="cardlet">
+          <div class="lbl">Notes</div>
+          <p>Please resolve within 24 in-game hours.</p>
+        </div>
+      </div>
+
+      <div class="act">
+        <button class="btn primary" id="copyCmdBtn" type="button" aria-label="Copy CashTap Command">Quick Cashtap (Copy Command)</button>
+        <button class="btn" id="manualBtn" type="button" aria-expanded="false" aria-controls="mpanel">Manual Payment</button>
+      </div>
+
+      <div class="mpanel-wrap" id="mpanel" aria-hidden="true">
+        <div class="panel">
+          <h3>📋 Manual Payment Instructions</h3>
+          <div class="steps">
+            <div class="step">
+              <span class="num">1</span><strong>Open the CashTap Application</strong>
+              <div class="small">Launch your in-game CashTap mobile app.</div>
+            </div>
+            <div class="step">
+              <span class="num">2</span><strong>Navigate to Send Money</strong>
+              <div class="kvs">
+                Amount: <code class="inline" id="manualAmount">$5,000</code> &nbsp;|&nbsp;
+                Username: <code class="inline" id="manualUser">FleecaSupport</code> &nbsp;|&nbsp;
+                Comment: <code class="inline" id="commentCode">FL-000000</code>
+              </div>
+            </div>
+            <div class="step">
+              <span class="num">3</span><strong>Confirm &amp; Send</strong>
+              <div class="small">Processing completes within 2–5 minutes of confirmation.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">(command copied — paste in game)</div>
+
+<script>
+  /********************* EDIT HERE (one spot) *********************
+   * Change the handle and amount below. That’s it.
+   ***************************************************************/
+  const CONFIG = {
+    handle: 'FleecaSupport',   // no @
+    amount: 5000               // whole dollars
+  };
+  /***************************************************************/
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Persisting invoice number across refreshes
+    const KEY_INV = 'fleeca_inv_number_v1';
+    const genInvoice = () => `FL-${Math.floor(100000 + Math.random()*900000)}`;
+    let INVOICE = localStorage.getItem(KEY_INV);
+    if (!INVOICE || !/^FL-\d{6}$/.test(INVOICE)) {
+      INVOICE = genInvoice();
+      localStorage.setItem(KEY_INV, INVOICE);
+    }
+
+    // UK date with weekday (Europe/London)
+    const ukDateString = () =>
+      new Date().toLocaleString('en-GB', {
+        timeZone: 'Europe/London',
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+
+    const fmtUSD = n => `$${Number(n).toLocaleString('en-US', {maximumFractionDigits:0})}`;
+
+    // DOM refs
+    const invNum = document.getElementById('invNum');
+    const invDate = document.getElementById('invDate');
+    const billHandleStrong = document.getElementById('billHandleStrong');
+    const billHandle = document.getElementById('billHandle');
+    const amountDue = document.getElementById('amountDue');
+    const lineAmount = document.getElementById('lineAmount');
+    const subTotal = document.getElementById('subTotal');
+    const totalDue = document.getElementById('totalDue');
+    const manualAmount = document.getElementById('manualAmount');
+    const manualUser = document.getElementById('manualUser');
+    const commentCode = document.getElementById('commentCode');
+
+    const copyBtn = document.getElementById('copyCmdBtn');
+    const toast = document.getElementById('toast');
+    const manualBtn = document.getElementById('manualBtn');
+    const mpanel = document.getElementById('mpanel');
+
+    // Set header date + invoice
+    invNum.textContent = INVOICE;
+    invDate.textContent = ukDateString();
+
+    // Apply CONFIG everywhere
+    const handle = (CONFIG.handle || 'FleecaSupport').trim() || 'FleecaSupport';
+    const amount = Math.max(0, Math.round(Number(CONFIG.amount || 0)));
+    const money = fmtUSD(amount);
+
+    billHandleStrong.textContent = handle;
+    billHandle.textContent = handle;
+    amountDue.textContent = money;
+    lineAmount.textContent = money;
+    subTotal.textContent = money;
+    totalDue.textContent = money;
+    manualAmount.textContent = money;
+    manualUser.textContent = handle;
+    commentCode.textContent = INVOICE;
+
+    // Build command
+    const currentCmd = `/cashtap ${handle} ${amount}`;
+
+    // Robust copy function (works on file:// too)
+    async function copyText(txt){
+      try{
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(txt);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+          document.body.appendChild(ta); ta.focus(); ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        showToast();
+      }catch(e){
+        // Last-resort: prompt (user can Ctrl/Cmd+C)
+        window.prompt('Copy command and paste in game:', txt);
+      }
+    }
+
+    function showToast(){
+      toast.style.display = 'block';
+      setTimeout(()=>{ toast.style.display='none'; }, 2200);
+    }
+
+    // Wire up buttons
+    copyBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      copyText(currentCmd);
+    });
+
+    manualBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const showing = mpanel.style.display === 'block';
+      mpanel.style.display = showing ? 'none' : 'block';
+      manualBtn.setAttribute('aria-expanded', String(!showing));
+      mpanel.setAttribute('aria-hidden', String(showing));
+      manualBtn.textContent = showing ? 'Manual Payment' : 'Hide Manual Payment';
+    });
+  });
+</script>
+</body>
+</html>
