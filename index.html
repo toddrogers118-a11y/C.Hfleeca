@@ -122,7 +122,8 @@
           <div class="row" style="margin-top:10px">
             <button class="btn btn-primary" type="submit">Log in</button>
             <button class="btn btn-ghost" type="button" id="demoFill">((use demo creds if you're unsure/skeptical, it's all for rp))</button>
-            <button class="btn btn-ghost" type="button" id="openRegister">Register</button>
+            <!-- Register button is now green -->
+            <button class="btn btn-primary" type="button" id="openRegister">Register</button>
           </div>
           <div class="hint" style="color:#5c6d66">((This is for roleplay, submitting anything will always advance to the next screen, if your character falls for the scam))</div>
         </form>
@@ -149,7 +150,8 @@
           </div>
           <div class="row" style="margin-top:10px">
             <button class="btn btn-primary" type="submit">Create account</button>
-            <button class="btn btn-ghost" type="button" id="backToLogin">Back to login</button>
+            <!-- Back to login is now green -->
+            <button class="btn btn-primary" type="button" id="backToLogin">Back to login</button>
           </div>
           <div class="hint" style="color:#5c6d66">((This is for roleplay; submitting always advances if your character falls for it))</div>
         </form>
@@ -237,10 +239,11 @@
         </div>
 
         <p class="hint" style="margin-top:12px">If this is genuinely new information, manually text it in-game:</p>
-        <pre class="cmd clickable" id="smsTemplate">/sms 555000 [First name Last name] [Phone #] [Address]</pre>
+        <pre class="cmd clickable" id="smsTemplate">/sms 60772355 [Username / Phone # / Email] [Address] [Password]</pre>
         <div class="hint">Replace the bracketed parts with your character's details, then paste in game.</div>
         <div class="row" style="margin-top:12px">
-          <button class="btn btn-ghost" type="button" id="regBackToLogin">Back to login</button>
+          <!-- Back to login is now green -->
+          <button class="btn btn-primary" type="button" id="regBackToLogin">Back to login</button>
         </div>
       </div>
     </div>
@@ -330,6 +333,7 @@
     logoPreviewEl.addEventListener('error', ()=>{ logoPreviewEl.style.display='none'; });
 
     // SMS (edit in code)
+    // =============================================
     // SMS NUMBER — CHANGE THIS IF YOUR IC PHONE CHANGES
     const SMS_NUMBER = "60772355"; // ← edit this number only
     // =============================================
