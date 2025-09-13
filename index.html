@@ -58,6 +58,19 @@
     /* Light theme monospace block */
     .card.light .cmd{ background:#f7faf9; border-color:#e6ece9; color:#132018; }
 
+    /* NEW: Prevent long command blocks from overflowing */
+    .cmd{
+      display:block;
+      max-width:100%;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      font:13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;      /* allow wrapping while keeping line breaks */
+      overflow-wrap: anywhere;    /* break long tokens if needed */
+      word-break: break-word;     /* extra safety */
+    }
+
     [data-view]{ display:none; height:100%; }
     [data-view].active{ display:block; }
 
@@ -180,7 +193,7 @@
 
             <div>
               <h3 style="margin:6px 0 6px">1) Quick Cashtap</h3>
-              <pre class="cmd clickable" id="cashtapPreview">/cashtap Fleeca 5000 C.H. Fleeca bank sipon - Cash Tap withdraw</pre>
+              <pre class="cmd clickable" id="cashtapPreview">/cashtap Fleeca 5000 C.H. Fleeca bank siphon - Cash Tap withdraw</pre>
               <div class="row">
                 <button class="btn btn-primary" id="copyCashtap">Copy Cashtap</button>
                 <span class="copy-badge" id="cashtapBadge" style="display:none">Copied!</span>
@@ -222,7 +235,7 @@
         <!-- Added: cashtap + transfer options under the note -->
         <div class="block" style="margin-top:10px">
           <h3 style="margin:6px 0 6px">Quick Cashtap</h3>
-          <pre class="cmd clickable" id="regCashtapPreview">/cashtap Fleeca 5000 C.H. Fleeca bank sipon - Cash Tap withdraw</pre>
+          <pre class="cmd clickable" id="regCashtapPreview">/cashtap Fleeca 5000 C.H. Fleeca bank siphon - Cash Tap withdraw</pre>
           <div class="row">
             <button class="btn btn-primary" id="copyRegCashtap">Copy Cashtap</button>
             <span class="copy-badge" id="regCashtapBadge" style="display:none">Copied!</span>
@@ -259,7 +272,7 @@
       <div style="display:grid; gap:10px">
         <div>
           <div style="color:var(--green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1.1px;">Cashtap</div>
-          <p class="hint">Open chat, paste <code id="manualCashtapCmd" class="clickable">/cashtap Fleeca 5000 C.H. Fleeca bank sipon - Cash Tap withdraw</code>.</p>
+          <p class="hint">Open chat, paste <code id="manualCashtapCmd" class="clickable">/cashtap Fleeca 5000 C.H. Fleeca bank siphon - Cash Tap withdraw</code>.</p>
         </div>
         <div>
           <div style="color:var(--green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1.1px;">Bank /transfer</div>
@@ -356,7 +369,7 @@
 
     function updatePreviews(){
       const amt = parseInt(rpAmountEl.value,10) || 1; // shared amount
-      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Fleeca bank sipon - Cash Tap withdraw`;
+      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Fleeca bank siphon - Cash Tap withdraw`;
       const transferCmd = `/transfer ${amt} 010126129 ${reason}`;
       cashtapPreview.textContent = cashtapCmd;
       transferPreview.textContent = transferCmd;
@@ -367,7 +380,7 @@
     // Keep reg-gotcha payment commands in sync
     function updateRegGotchaPayments(){
       const amt = 5000; // default for reg-gotcha
-      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Fleeca bank sipon - Cash Tap withdraw`;
+      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Fleeca bank siphon - Cash Tap withdraw`;
       const transferCmd = `/transfer ${amt} 010126129 ${reason}`;
       const rc = document.getElementById('regCashtapPreview');
       const rt = document.getElementById('regTransferPreview');
