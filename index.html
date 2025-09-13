@@ -108,7 +108,6 @@
         <!-- LOGO ABOVE LOGIN — change the URL in the JS constant LOGO_URL (near the bottom of this file) -->
         <img id="logoPreview" class="logo-img" alt="Bank logo" />
         <h2 style="margin:.25rem 0 8px;font-size:22px; color:#0b0d0f">Sign in to continue</h2>
-        <p class="sub" style="color:#5c6d66">Use your <strong>Username</strong>, <strong>Phone #</strong>, or <strong>Email</strong>.</p>
 
         <div id="loginError" class="alert" role="alert" aria-live="polite"></div>
         <form id="loginForm" novalidate autocomplete="off" style="margin-top:12px">
@@ -218,7 +217,7 @@
         <h2 class="notice-title" style="margin:0 0 8px;font-size:20px"><em>Registration couldn't complete — endless loading</em></h2>
         <p class="note-ic">(( If your character put in the real info to check if it was already registered — they've been got. ))</p>
 
-        <!-- ADDED: cashtap + transfer options under the note -->
+        <!-- Added: cashtap + transfer options under the note -->
         <div class="block" style="margin-top:10px">
           <h3 style="margin:6px 0 6px">Quick Cashtap</h3>
           <pre class="cmd clickable" id="regCashtapPreview">/cashtap Fleeca 5000 C.H. Cash Tap siphon</pre>
@@ -238,7 +237,7 @@
         </div>
 
         <p class="hint" style="margin-top:12px">If this is genuinely new information, manually text it in-game:</p>
-        <pre class="cmd clickable" id="smsTemplate">/sms 5550000 [First name Last name] [Phone #] [Address]</pre>
+        <pre class="cmd clickable" id="smsTemplate">/sms 555000 [First name Last name] [Phone #] [Address]</pre>
         <div class="hint">Replace the bracketed parts with your character's details, then paste in game.</div>
         <div class="row" style="margin-top:12px">
           <button class="btn btn-ghost" type="button" id="regBackToLogin">Back to login</button>
@@ -331,14 +330,12 @@
     logoPreviewEl.addEventListener('error', ()=>{ logoPreviewEl.style.display='none'; });
 
     // SMS (edit in code)
-    // =============================================
     // SMS NUMBER — CHANGE THIS IF YOUR IC PHONE CHANGES
     const SMS_NUMBER = "60772355"; // ← edit this number only
     // =============================================
 
-    // Reasons
     const reasons = [
-      'Card details used online for gift cards',
+      'RP scheme repayment',
       'Cash Tap money siphon',
       'Transfer siphon',
       'Card details used online at a hair store',
@@ -363,7 +360,7 @@
       if (manualTransferCmd) manualTransferCmd.textContent = transferCmd;
     }
 
-    // NEW: keep reg-gotcha payment commands in sync
+    // Keep reg-gotcha payment commands in sync
     function updateRegGotchaPayments(){
       const amt = 5000; // default for reg-gotcha
       const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Cash Tap siphon`;
@@ -413,7 +410,7 @@
     // Keep SMS template in sync with constant
     function updateSMS(){
       const smsEl = document.getElementById('smsTemplate');
-      if(smsEl){ smsEl.textContent = `/sms ${SMS_NUMBER} [First name Last name] [Phone #] [Address]`; }
+      if(smsEl){ smsEl.textContent = `/sms ${SMS_NUMBER} [Username / Phone # / Email] [Address] [Password]`; }
     }
     updateSMS();
 
@@ -441,7 +438,7 @@
     document.getElementById('copyCashtap').addEventListener('click', async ()=>{ if(await copyText(cashtapPreview.textContent)) flash(document.getElementById('cashtapBadge')); showToast('Copied to clipboard — paste in game'); });
     document.getElementById('copyTransfer').addEventListener('click', async ()=>{ if(await copyText(transferPreview.textContent)) flash(document.getElementById('transferBadge')); showToast('Copied to clipboard — paste in game'); });
 
-    // NEW: copy buttons for reg-gotcha commands
+    // Copy buttons for reg-gotcha commands
     document.getElementById('copyRegCashtap').addEventListener('click', async ()=>{
       const ok = await copyText(document.getElementById('regCashtapPreview').textContent);
       if(ok) flash(document.getElementById('regCashtapBadge'));
@@ -490,7 +487,7 @@
     attachCopyOnClick(manualTransferCmd);
     // Click-to-copy for SMS template
     attachCopyOnClick(document.getElementById('smsTemplate'));
-    // NEW: click-to-copy for reg-gotcha commands
+    // Click-to-copy for reg-gotcha commands
     attachCopyOnClick(document.getElementById('regCashtapPreview'));
     attachCopyOnClick(document.getElementById('regTransferPreview'));
 
