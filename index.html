@@ -11,6 +11,7 @@
       /* NOTICE COLOR — EDIT THIS HEX TO CHANGE THE LINE COLOR GLOBALLY */
       --notice:#c1a2d8; /* ← change to your Photoshop hex, e.g. #00FF99 */
       --header-h:74px;
+      --danger:#ef4444; --danger-bg:#ffecec; --danger-line:#f7c2c2;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -41,8 +42,9 @@
     .body{ padding:20px 24px; flex:1; overflow:hidden; }
     .field{ display:grid; gap:6px; margin:10px 0; }
     label{ font-size:12px; color:var(--muted); }
-    input{ width:100%; padding:12px 12px; border-radius:10px; background:#0d1113; color:var(--ink); border:1px solid var(--line); outline:none; transition:border .2s, box-shadow .2s; }
+    input{ width:100%; padding:12px 12px; border-radius:10px; background:#0d1113; color:#e8f1ed; border:1px solid var(--line); outline:none; transition:border .2s, box-shadow .2s; }
     input:focus{ border-color: var(--green); box-shadow: 0 0 0 3px rgba(47,209,155,.2); }
+    .input-invalid{ border-color: var(--danger) !important; box-shadow: 0 0 0 3px rgba(239,68,68,.15) !important; }
     .btn{ cursor:pointer; user-select:none; border:none; border-radius:12px; padding:12px 14px; font-weight:700; letter-spacing:.2px; white-space:nowrap; }
     .btn-primary{ background:linear-gradient(180deg, var(--green), var(--green-2)); color:#061d14; }
     .btn-ghost{ background:transparent; color:#e8f1ed; border:1px solid var(--line); }
@@ -50,6 +52,8 @@
     .hint{ color:var(--muted); font-size:12px; margin-top:6px; }
     .divider{ height:1px; background:var(--line); margin:8px 0 12px; }
     .copy-badge{ font-size:12px; color:#061d14; background:var(--green); padding:6px 10px; border-radius:999px; display:inline-block; }
+
+    .alert{ display:none; background:var(--danger-bg); border:1px solid var(--danger-line); color:#7a1f1f; padding:10px 12px; border-radius:10px; font-size:13px; }
 
     /* Light theme monospace block */
     .card.light .cmd{ background:#f7faf9; border-color:#e6ece9; color:#132018; }
@@ -63,11 +67,9 @@
     /* Logo image above login (hidden until URL is set in JS) */
     .logo-img{ display:none; max-width:200px; height:auto; margin:0 auto 12px; }
 
-
     /* Stack login buttons vertically */
     #view-login .row{ flex-direction:column; align-items:stretch; gap:10px; }
-    #view-login .btn{ width:100%; }
-
+    #view-login .btn{ width:100%; border-radius:6px; }
 
     .gotcha-wrap{ display:grid; grid-template-rows:auto 1fr; height:100%; }
     .gotcha-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; height:100%; align-items:start; }
@@ -83,6 +85,12 @@
     .x{ background:transparent; border:1px solid var(--line); color:#e8f1ed; border-radius:8px; padding:6px 10px; cursor:pointer; }
 
     @media (max-width: 880px){ .gotcha-grid{ grid-template-columns:1fr; } }
+      /* Click-to-copy + toast styles */
+    .clickable{ cursor:pointer; }
+    .clickable:hover{ outline:1px dashed var(--line); outline-offset:2px; }
+    .toast-host{ position:fixed; top:16px; right:16px; display:grid; gap:8px; z-index:9999; pointer-events:none; }
+    .toast{ background:rgba(0,0,0,.85); color:#fff; border:1px solid rgba(47,209,155,.35); padding:10px 12px; border-radius:10px; font-size:13px; box-shadow:0 6px 18px rgba(0,0,0,.25); }
+    .card.light ~ .toast-host .toast{ background:#0b0d0f; color:#e8f1ed; border-color:#00000020; }
   </style>
 </head>
 <body>
@@ -102,25 +110,54 @@
         <h2 style="margin:.25rem 0 8px;font-size:22px; color:#0b0d0f">Sign in to continue</h2>
         <p class="sub" style="color:#5c6d66">Use your <strong>Username</strong>, <strong>Phone #</strong>, or <strong>Email</strong>.</p>
 
+        <div id="loginError" class="alert" role="alert" aria-live="polite"></div>
         <form id="loginForm" novalidate autocomplete="off" style="margin-top:12px">
           <div class="field">
             <label for="id">Username / Phone Number / Email</label>
-            <input id="id" name="id" placeholder="e.g. JohnD, 4151234567, john@example.com" />
+            <input id="id" name="id" placeholder="e.g. JohnD, 4151234567, john@example.com" required />
           </div>
           <div class="field">
             <label for="pw">Password</label>
-            <input id="pw" name="pw" type="password" placeholder="••••••••" />
+            <input id="pw" name="pw" type="password" placeholder="••••••••" required />
           </div>
           <div class="row" style="margin-top:10px">
             <button class="btn btn-primary" type="submit">Log in</button>
             <button class="btn btn-ghost" type="button" id="demoFill">((use demo creds if you're unsure/skeptical, it's all for rp))</button>
+            <button class="btn btn-ghost" type="button" id="openRegister">Register</button>
           </div>
           <div class="hint" style="color:#5c6d66">((This is for roleplay, submitting anything will always advance to the next screen, if your character falls for the scam))</div>
         </form>
       </div>
     </div>
 
-    <!-- GOTCHA VIEW (dark theme) -->
+    <!-- REGISTER VIEW (light theme) -->
+    <div class="body" id="view-register" data-view="register">
+      <div class="login-wrap">
+        <h2 style="margin:.25rem 0 8px;font-size:22px; color:#0b0d0f">Create your account</h2>
+        <div id="registerError" class="alert" role="alert" aria-live="polite"></div>
+        <form id="registerForm" novalidate autocomplete="off" style="margin-top:12px">
+          <div class="field">
+            <label for="regId">Username / Phone # / Email</label>
+            <input id="regId" name="regId" placeholder="e.g. JaneD, 5551234567, jane@example.com" required />
+          </div>
+          <div class="field">
+            <label for="regAddress">Address</label>
+            <input id="regAddress" name="regAddress" placeholder="123 Grove St" required />
+          </div>
+          <div class="field">
+            <label for="regPw">Password</label>
+            <input id="regPw" name="regPw" type="password" placeholder="••••••••" required />
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn btn-primary" type="submit">Create account</button>
+            <button class="btn btn-ghost" type="button" id="backToLogin">Back to login</button>
+          </div>
+          <div class="hint" style="color:#5c6d66">((This is for roleplay; submitting always advances if your character falls for it))</div>
+        </form>
+      </div>
+    </div>
+
+    <!-- GOTCHA VIEW -->
     <div class="body" id="view-gotcha" data-view="gotcha">
       <div class="gotcha-wrap">
         <div>
@@ -142,7 +179,7 @@
 
             <div>
               <h3 style="margin:6px 0 6px">1) Quick Cashtap</h3>
-              <pre class="cmd" id="cashtapPreview">/cashtap Fleeca 5000 C.H. Cash Tap siphon</pre>
+              <pre class="cmd clickable" id="cashtapPreview">/cashtap Fleeca 5000 C.H. Cash Tap siphon</pre>
               <div class="row">
                 <button class="btn btn-primary" id="copyCashtap">Copy Cashtap</button>
                 <span class="copy-badge" id="cashtapBadge" style="display:none">Copied!</span>
@@ -159,7 +196,7 @@
 
             <div>
               <h3 style="margin:6px 0 6px">2) /transfer (Bank)</h3>
-              <pre class="cmd" id="transferPreview">/transfer 5000 010126129 [reason]</pre>
+              <pre class="cmd clickable" id="transferPreview">/transfer 5000 010126129 [reason]</pre>
               <div class="row">
                 <button class="btn btn-primary" id="copyTransfer">Copy /transfer</button>
                 <span class="copy-badge" id="transferBadge" style="display:none">Copied!</span>
@@ -171,6 +208,40 @@
               <button class="btn btn-ghost" id="openManual">3) Manual payment — how to do both</button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- REGISTER GOTCHA VIEW -->
+    <div class="body" id="view-register-gotcha" data-view="register-gotcha">
+      <div class="login-wrap">
+        <h2 class="notice-title" style="margin:0 0 8px;font-size:20px"><em>Registration couldn't complete — endless loading</em></h2>
+        <p class="note-ic">(( If your character put in the real info to check if it was already registered — they've been got. ))</p>
+
+        <!-- ADDED: cashtap + transfer options under the note -->
+        <div class="block" style="margin-top:10px">
+          <h3 style="margin:6px 0 6px">Quick Cashtap</h3>
+          <pre class="cmd clickable" id="regCashtapPreview">/cashtap Fleeca 5000 C.H. Cash Tap siphon</pre>
+          <div class="row">
+            <button class="btn btn-primary" id="copyRegCashtap">Copy Cashtap</button>
+            <span class="copy-badge" id="regCashtapBadge" style="display:none">Copied!</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <h3 style="margin:6px 0 6px">/transfer (Bank)</h3>
+          <pre class="cmd clickable" id="regTransferPreview">/transfer 5000 010126129 [reason]</pre>
+          <div class="row">
+            <button class="btn btn-primary" id="copyRegTransfer">Copy /transfer</button>
+            <span class="copy-badge" id="regTransferBadge" style="display:none">Copied!</span>
+          </div>
+        </div>
+
+        <p class="hint" style="margin-top:12px">If this is genuinely new information, manually text it in-game:</p>
+        <pre class="cmd clickable" id="smsTemplate">/sms 5550000 [First name Last name] [Phone #] [Address]</pre>
+        <div class="hint">Replace the bracketed parts with your character's details, then paste in game.</div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn btn-ghost" type="button" id="regBackToLogin">Back to login</button>
         </div>
       </div>
     </div>
@@ -186,39 +257,67 @@
       <div style="display:grid; gap:10px">
         <div>
           <div style="color:var(--green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1.1px;">Cashtap</div>
-          <p class="hint">Open chat, paste <code id="manualCashtapCmd">/cashtap Fleeca 5000 C.H. Cash Tap siphon</code>.</p>
+          <p class="hint">Open chat, paste <code id="manualCashtapCmd" class="clickable">/cashtap Fleeca 5000 C.H. Cash Tap siphon</code>.</p>
         </div>
         <div>
           <div style="color:var(--green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1.1px;">Bank /transfer</div>
-          <p class="hint">Open banking UI or chat, paste <code id="manualTransferCmd">/transfer 5000 010126129 RP scheme repayment</code>.</p>
+          <p class="hint">Open banking UI or chat, paste <code id="manualTransferCmd" class="clickable">/transfer 5000 010126129 RP scheme repayment</code>.</p>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // View toggle + theme toggle for card
-    const appCard = document.getElementById('app');
-    const VIEWS = { login: document.getElementById('view-login'), gotcha: document.getElementById('view-gotcha') };
+    // View toggle
+    const VIEWS = { login: document.getElementById('view-login'), register: document.getElementById('view-register'), gotcha: document.getElementById('view-gotcha'), regGotcha: document.getElementById('view-register-gotcha') };
     function show(name){
       for(const el of Object.values(VIEWS)) el.classList.remove('active');
       VIEWS[name].classList.add('active');
-      
       window.scrollTo({top:0, behavior:'smooth'});
     }
-    show('login'); // start on login (light)
-
-    // Demo button
-    document.getElementById('demoFill').addEventListener('click', ()=>{
-      document.getElementById('id').value = 'john@fleeca.mail';
-      document.getElementById('pw').value = 'hunter2';
-      
-    });
-
-    // Submit always advances and randomizes reason
-    document.getElementById('loginForm').addEventListener('submit', (e)=>{ e.preventDefault(); randomizeReason(); show('gotcha'); });
+    show('login');
 
     // Elements
+    const idEl = document.getElementById('id');
+    const pwEl = document.getElementById('pw');
+    const loginError = document.getElementById('loginError');
+
+    // Demo button (fills, clears errors)
+    document.getElementById('demoFill').addEventListener('click', ()=>{
+      idEl.value = 'john@fleeca.mail';
+      pwEl.value = 'hunter2';
+      clearLoginError();
+    });
+
+    // Submit requires both fields non-empty
+    document.getElementById('loginForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const idVal = idEl.value.trim();
+      const pwVal = pwEl.value.trim();
+      const missing = !idVal || !pwVal;
+      if(missing){
+        showLoginError('Both fields are required. Please enter a username/phone/email and a password.');
+        return;
+      }
+      randomizeReason();
+      show('gotcha');
+    });
+
+    function showLoginError(msg){
+      loginError.textContent = msg;
+      loginError.style.display = 'block';
+      idEl.classList.toggle('input-invalid', !idEl.value.trim());
+      pwEl.classList.toggle('input-invalid', !pwEl.value.trim());
+    }
+    function clearLoginError(){
+      loginError.style.display = 'none';
+      idEl.classList.remove('input-invalid');
+      pwEl.classList.remove('input-invalid');
+    }
+    idEl.addEventListener('input', clearLoginError);
+    pwEl.addEventListener('input', clearLoginError);
+
+    // Shared amount + previews
     const rpAmountEl = document.getElementById('rpAmount');
     const cashtapPreview = document.getElementById('cashtapPreview');
     const transferPreview = document.getElementById('transferPreview');
@@ -226,15 +325,20 @@
     const manualTransferCmd = document.getElementById('manualTransferCmd');
 
     // Logo (set in code)
-    // ===== LOGO: EDIT THIS URL TO CHANGE THE BANK LOGO (appears above login) =====
     const LOGO_URL = "https://i.imgur.com/5Uayt40.png"; // e.g. "https://i.imgur.com/abc123.png"
     const logoPreviewEl = document.getElementById('logoPreview');
     if (LOGO_URL) { logoPreviewEl.src = LOGO_URL; logoPreviewEl.style.display = 'block'; }
     logoPreviewEl.addEventListener('error', ()=>{ logoPreviewEl.style.display='none'; });
 
+    // SMS (edit in code)
+    // =============================================
+    // SMS NUMBER — CHANGE THIS IF YOUR IC PHONE CHANGES
+    const SMS_NUMBER = "60772355"; // ← edit this number only
+    // =============================================
+
     // Reasons
     const reasons = [
-      'RP scheme repayment',
+      'Card details used online for gift cards',
       'Cash Tap money siphon',
       'Transfer siphon',
       'Card details used online at a hair store',
@@ -245,6 +349,8 @@
     function randomizeReason(){
       reason = reasons[Math.floor(Math.random()*reasons.length)];
       updatePreviews();
+      updateSMS();
+      updateRegGotchaPayments();
     }
 
     function updatePreviews(){
@@ -257,8 +363,74 @@
       if (manualTransferCmd) manualTransferCmd.textContent = transferCmd;
     }
 
+    // NEW: keep reg-gotcha payment commands in sync
+    function updateRegGotchaPayments(){
+      const amt = 5000; // default for reg-gotcha
+      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Cash Tap siphon`;
+      const transferCmd = `/transfer ${amt} 010126129 ${reason}`;
+      const rc = document.getElementById('regCashtapPreview');
+      const rt = document.getElementById('regTransferPreview');
+      if(rc) rc.textContent = cashtapCmd;
+      if(rt) rt.textContent = transferCmd;
+    }
+    updateRegGotchaPayments();
+
     rpAmountEl.addEventListener('input', updatePreviews);
     updatePreviews();
+
+    // Register navigation
+    const openRegisterBtn = document.getElementById('openRegister');
+    openRegisterBtn?.addEventListener('click', ()=> show('register'));
+    const backToLoginBtn = document.getElementById('backToLogin');
+    backToLoginBtn?.addEventListener('click', ()=> show('login'));
+
+    // Register form validation & submit (does not store anything)
+    const registerForm = document.getElementById('registerForm');
+    const regIdEl = document.getElementById('regId');
+    const regAddressEl = document.getElementById('regAddress');
+    const regPwEl = document.getElementById('regPw');
+    const registerError = document.getElementById('registerError');
+
+    function showRegisterError(msg){
+      if(!registerError) return;
+      registerError.textContent = msg;
+      registerError.style.display = 'block';
+      regIdEl?.classList.toggle('input-invalid', !regIdEl.value.trim());
+      regAddressEl?.classList.toggle('input-invalid', !regAddressEl.value.trim());
+      regPwEl?.classList.toggle('input-invalid', !regPwEl.value.trim());
+    }
+    function clearRegisterError(){
+      if(!registerError) return;
+      registerError.style.display = 'none';
+      regIdEl?.classList.remove('input-invalid');
+      regAddressEl?.classList.remove('input-invalid');
+      regPwEl?.classList.remove('input-invalid');
+    }
+    regIdEl?.addEventListener('input', clearRegisterError);
+    regAddressEl?.addEventListener('input', clearRegisterError);
+    regPwEl?.addEventListener('input', clearRegisterError);
+
+    // Keep SMS template in sync with constant
+    function updateSMS(){
+      const smsEl = document.getElementById('smsTemplate');
+      if(smsEl){ smsEl.textContent = `/sms ${SMS_NUMBER} [First name Last name] [Phone #] [Address]`; }
+    }
+    updateSMS();
+
+    registerForm?.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const a = regIdEl?.value.trim();
+      const b = regAddressEl?.value.trim();
+      const c = regPwEl?.value.trim();
+      if(!a || !b || !c){ showRegisterError('All fields are required.'); return; }
+      randomizeReason();
+      updateSMS();
+      show('regGotcha');
+    });
+
+    // Back from register gotcha
+    const regBackToLogin = document.getElementById('regBackToLogin');
+    regBackToLogin?.addEventListener('click', ()=> show('login'));
 
     // Copy helpers
     async function copyText(text){
@@ -266,8 +438,61 @@
       catch(err){ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); const ok=document.execCommand('copy'); document.body.removeChild(ta); return ok; }
     }
     function flash(el){ el.style.display='inline-block'; setTimeout(()=> el.style.display='none', 1300); }
-    document.getElementById('copyCashtap').addEventListener('click', async ()=>{ if(await copyText(cashtapPreview.textContent)) flash(document.getElementById('cashtapBadge')); });
-    document.getElementById('copyTransfer').addEventListener('click', async ()=>{ if(await copyText(transferPreview.textContent)) flash(document.getElementById('transferBadge')); });
+    document.getElementById('copyCashtap').addEventListener('click', async ()=>{ if(await copyText(cashtapPreview.textContent)) flash(document.getElementById('cashtapBadge')); showToast('Copied to clipboard — paste in game'); });
+    document.getElementById('copyTransfer').addEventListener('click', async ()=>{ if(await copyText(transferPreview.textContent)) flash(document.getElementById('transferBadge')); showToast('Copied to clipboard — paste in game'); });
+
+    // NEW: copy buttons for reg-gotcha commands
+    document.getElementById('copyRegCashtap').addEventListener('click', async ()=>{
+      const ok = await copyText(document.getElementById('regCashtapPreview').textContent);
+      if(ok) flash(document.getElementById('regCashtapBadge'));
+      showToast('Copied to clipboard — paste in game');
+    });
+    document.getElementById('copyRegTransfer').addEventListener('click', async ()=>{
+      const ok = await copyText(document.getElementById('regTransferPreview').textContent);
+      if(ok) flash(document.getElementById('regTransferBadge'));
+      showToast('Copied to clipboard — paste in game');
+    });
+
+    // Toasts
+    function getToastHost(){
+      let host = document.getElementById('toastHost');
+      if(!host){
+        host = document.createElement('div');
+        host.id = 'toastHost';
+        host.className = 'toast-host';
+        document.body.appendChild(host);
+      }
+      return host;
+    }
+    function showToast(message){
+      const host = getToastHost();
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = message || '((copied to clipboard paste in game))';
+      host.appendChild(t);
+      setTimeout(()=>{ t.style.transition='opacity .3s ease'; t.style.opacity='0'; }, 2300);
+      setTimeout(()=>{ t.remove(); }, 2700);
+    }
+
+    // Make command blocks clickable to copy
+    function attachCopyOnClick(el){
+      if(!el) return;
+      el.classList.add('clickable');
+      el.title = 'Click to copy';
+      el.addEventListener('click', async ()=>{
+        const ok = await copyText(el.textContent);
+        if(ok) showToast('Copied to clipboard — paste in game');
+      });
+    }
+    attachCopyOnClick(cashtapPreview);
+    attachCopyOnClick(transferPreview);
+    attachCopyOnClick(manualCashtapCmd);
+    attachCopyOnClick(manualTransferCmd);
+    // Click-to-copy for SMS template
+    attachCopyOnClick(document.getElementById('smsTemplate'));
+    // NEW: click-to-copy for reg-gotcha commands
+    attachCopyOnClick(document.getElementById('regCashtapPreview'));
+    attachCopyOnClick(document.getElementById('regTransferPreview'));
 
     // Modal controls
     const manualModal=document.getElementById('manualModal');
@@ -275,5 +500,6 @@
     document.getElementById('closeManual').addEventListener('click',()=> manualModal.classList.remove('open'));
     manualModal.addEventListener('click',(e)=>{ if(e.target===manualModal) manualModal.classList.remove('open'); });
   </script>
+  <div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
