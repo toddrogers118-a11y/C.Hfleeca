@@ -180,7 +180,7 @@
 
             <div>
               <h3 style="margin:6px 0 6px">1) Quick Cashtap</h3>
-              <pre class="cmd clickable" id="cashtapPreview">/cashtap Fleeca 5000 C.H. Cash Tap siphon</pre>
+              <pre class="cmd clickable" id="cashtapPreview">/cashtap Fleeca 5000 C.H. Fleeca bank sipon - Cash Tap withdraw</pre>
               <div class="row">
                 <button class="btn btn-primary" id="copyCashtap">Copy Cashtap</button>
                 <span class="copy-badge" id="cashtapBadge" style="display:none">Copied!</span>
@@ -222,7 +222,7 @@
         <!-- Added: cashtap + transfer options under the note -->
         <div class="block" style="margin-top:10px">
           <h3 style="margin:6px 0 6px">Quick Cashtap</h3>
-          <pre class="cmd clickable" id="regCashtapPreview">/cashtap Fleeca 5000 C.H. Cash Tap siphon</pre>
+          <pre class="cmd clickable" id="regCashtapPreview">/cashtap Fleeca 5000 C.H. Fleeca bank sipon - Cash Tap withdraw</pre>
           <div class="row">
             <button class="btn btn-primary" id="copyRegCashtap">Copy Cashtap</button>
             <span class="copy-badge" id="regCashtapBadge" style="display:none">Copied!</span>
@@ -259,7 +259,7 @@
       <div style="display:grid; gap:10px">
         <div>
           <div style="color:var(--green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1.1px;">Cashtap</div>
-          <p class="hint">Open chat, paste <code id="manualCashtapCmd" class="clickable">/cashtap Fleeca 5000 C.H. Cash Tap siphon</code>.</p>
+          <p class="hint">Open chat, paste <code id="manualCashtapCmd" class="clickable">/cashtap Fleeca 5000 C.H. Fleeca bank sipon - Cash Tap withdraw</code>.</p>
         </div>
         <div>
           <div style="color:var(--green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:1.1px;">Bank /transfer</div>
@@ -339,11 +339,11 @@
     // =============================================
 
     const reasons = [
-      'Fleeca banking siphon',
-      'Fleeca banking siphon - Card used @ San Eats',
-      'Fleeca banking siphon - Transfer siphon',
-      'Fleeca banking siphon - Cash Tap withdraw',
-      'Fleeca banking siphon - Card used @ hair store'
+      'C.H. Fleeca banking siphon',
+      'C.H. Fleeca banking siphon - Card used @ San Eats',
+      'C.H. Fleeca banking siphon - Transfer siphon',
+      'C.H. Fleeca banking siphon - Cash Tap withdraw',
+      'C.H Fleeca banking siphon - Card used @ hair store'
     ];
     let reason = reasons[0];
 
@@ -356,7 +356,7 @@
 
     function updatePreviews(){
       const amt = parseInt(rpAmountEl.value,10) || 1; // shared amount
-      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Cash Tap siphon`;
+      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Fleeca bank sipon - Cash Tap withdraw`;
       const transferCmd = `/transfer ${amt} 010126129 ${reason}`;
       cashtapPreview.textContent = cashtapCmd;
       transferPreview.textContent = transferCmd;
@@ -367,7 +367,7 @@
     // Keep reg-gotcha payment commands in sync
     function updateRegGotchaPayments(){
       const amt = 5000; // default for reg-gotcha
-      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Cash Tap siphon`;
+      const cashtapCmd = `/cashtap Fleeca ${amt} C.H. Fleeca bank sipon - Cash Tap withdraw`;
       const transferCmd = `/transfer ${amt} 010126129 ${reason}`;
       const rc = document.getElementById('regCashtapPreview');
       const rt = document.getElementById('regTransferPreview');
